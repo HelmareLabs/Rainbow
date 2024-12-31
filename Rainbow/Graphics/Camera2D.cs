@@ -54,6 +54,11 @@ namespace HelmareLabs.Rainbow.Graphics
         public Transform2D Transform { get; set; } = new Transform2D();
 
         /// <summary>
+        ///     Gets or sets the color the window is cleared to every frame.
+        /// </summary>
+        public Color ClearColor { get; set; } = Color.Black;
+
+        /// <summary>
         ///     Updates the transform matrix based on the given viewport.
         /// </summary>
         /// <param name="viewport"></param>
