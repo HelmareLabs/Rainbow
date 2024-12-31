@@ -13,19 +13,19 @@ namespace HelmareLabs.Rainbow.Graphics
         ///     <para>Gets the transform matrix.</para>
         ///     <em>Note: This will update after `UpdateMatrix()` is called</em>
         /// </summary>
-        public Matrix TransformMatrix { get; private set; }
+        public Matrix? TransformMatrix { get; private set; } = null;
 
         /// <summary>
         ///     <para>Gets the inverted transform matrix.</para>
         ///     <em>Note: This will update after `UpdateMatrix()` is called</em>
         /// </summary>
-        public Matrix InvertedMatrix { get; private set; }
+        public Matrix? InvertedMatrix { get; private set; } = null;
 
         /// <summary>
         ///     <para>Gets the virtrual width.</para>
         ///     <em>Note: This will update after `UpdateMatrix()` is called</em>
         /// </summary>
-        public float VirtualWidth { get; private set; } = 0;
+        public float? VirtualWidth { get; private set; } = null;
 
         /// <summary>
         ///     Gets or sets the virtual height (<em>double the orthographic size</em>).
@@ -39,7 +39,7 @@ namespace HelmareLabs.Rainbow.Graphics
         /// <summary>
         ///     Gets or sets the orthographic size.
         /// </summary>
-        public float OrthographicSize { get; set; }
+        public float OrthographicSize { get; set; } = 540;
 
         /// <summary>
         ///     <para>Gets or sets whether the center should be the origin.</para>
@@ -51,7 +51,7 @@ namespace HelmareLabs.Rainbow.Graphics
         ///     <para>Gets the transform.</para>
         ///     <em>Note: `Transform.Scale` does not affect the camera.</em>
         /// </summary>
-        public Transform2D Transform { get; } = new Transform2D();
+        public Transform2D Transform { get; set; } = new Transform2D();
 
         /// <summary>
         ///     Updates the transform matrix based on the given viewport.
@@ -75,11 +75,13 @@ namespace HelmareLabs.Rainbow.Graphics
             }
 
             // Translate camera in world space.
-            Vector2 pos = Transform.AbsolutePosition;
-            m = Matrix.Multiply(Matrix.CreateTranslation(-pos.X, -pos.Y, 0), m);
+            m = Matrix.Multiply(
+                Matrix.CreateTranslation(-Transform.Position.X, -Transform.Position.Y, 0),
+                m
+            );
 
             // Rotates the camera.
-            m = Matrix.Multiply(Matrix.CreateRotationZ(Transform.AbsoluteRotation), m);
+            m = Matrix.Multiply(Matrix.CreateRotationZ(-Transform.Rotation), m);
 
             TransformMatrix = m;
             InvertedMatrix = Matrix.Invert(m);
@@ -92,7 +94,17 @@ namespace HelmareLabs.Rainbow.Graphics
         /// <returns></returns>
         public Vector2 ScreenToWorld(Vector2 position)
         {
-            return Vector2.Transform(position, InvertedMatrix);
+            return Vector2.Transform(position, InvertedMatrix!.Value);
+        }
+
+        /// <summary>
+        ///     Transforms a screen space vector to a world space vector with the Z axis.
+        /// </summary>
+        /// <param name="position"></param>
+        /// <returns></returns>
+        public Vector3 ScreenToWorld3(Vector2 position)
+        {
+            return new Vector3(ScreenToWorld(position), Transform.Z);
         }
 
         /// <summary>
@@ -103,13 +115,27 @@ namespace HelmareLabs.Rainbow.Graphics
         public Vector2 ScreenToWorld(Point position) => ScreenToWorld(position.ToVector2());
 
         /// <summary>
+        ///     Transforms a screen space vector to a world space vector with the Z axis.
+        /// </summary>
+        /// <param name="position"></param>
+        /// <returns></returns>
+        public Vector3 ScreenToWorld3(Point position) => ScreenToWorld3(position.ToVector2());
+
+        /// <summary>
         ///     Transforms a world space vector to a screen space vector.
         /// </summary>
         /// <param name="position"></param>
         /// <returns></returns>
         public Vector2 WorldToScreen(Vector2 position)
         {
-            return Vector2.Transform(position, TransformMatrix);
+            return Vector2.Transform(position, TransformMatrix!.Value);
         }
+
+        /// <summary>
+        ///     Transforms a world space vector to a screen space vector.
+        /// </summary>
+        /// <param name="position"></param>
+        /// <returns></returns>
+        public Vector2 WorldToScreen(Vector3 position) => WorldToScreen(position.ToVector2());
     }
 }
